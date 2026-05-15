@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculator</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #f0f0f0; font-family: sans-serif; }
+  .calc { width: 300px; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.12); background: #fff; border: 1px solid #e0e0e0; }
+  .display { padding: 1.25rem 1rem 0.75rem; text-align: right; background: #fff; }
+  .expr { font-size: 13px; color: #888; min-height: 18px; margin-bottom: 4px; font-family: monospace; }
+  .val { font-size: 32px; font-weight: 500; color: #111; font-family: monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5px; background: #e0e0e0; border-top: 1px solid #e0e0e0; }
+  .btn { padding: 16px 4px; border: none; background: #fff; color: #111; font-size: 16px; cursor: pointer; transition: background .1s; font-family: sans-serif; }
+  .btn:hover { background: #f5f5f5; }
+  .btn:active { transform: scale(0.96); }
+  .btn.op { color: #1a6fb5; }
+  .btn.eq { background: #e8f1fb; color: #1a6fb5; font-weight: 500; }
+  .btn.eq:hover { background: #d8e8f7; }
+  .btn.ac { color: #c0392b; }
+  .span2 { grid-column: span 2; }
+</style>
+</head>
+<body>
+<div class="calc">
+  <div class="display">
+    <div class="expr" id="expr"></div>
+    <div class="val" id="val">0</div>
+  </div>
+  <div class="grid">
+    <button class="btn ac" onclick="ac()">AC</button>
+    <button class="btn op" onclick="sign()">+/−</button>
+    <button class="btn op" onclick="pct()">%</button>
+    <button class="btn op" onclick="op('÷')">÷</button>
+    <button class="btn" onclick="num('7')">7</button>
+    <button class="btn" onclick="num('8')">8</button>
+    <button class="btn" onclick="num('9')">9</button>
+    <button class="btn op" onclick="op('×')">×</button>
+    <button class="btn" onclick="num('4')">4</button>
+    <button class="btn" onclick="num('5')">5</button>
+    <button class="btn" onclick="num('6')">6</button>
+    <button class="btn op" onclick="op('−')">−</button>
+    <button class="btn" onclick="num('1')">1</button>
+    <button class="btn" onclick="num('2')">2</button>
+    <button class="btn" onclick="num('3')">3</button>
+    <button class="btn op" onclick="op('+')">+</button>
+    <button class="btn span2" onclick="num('0')">0</button>
+    <button class="btn" onclick="dot()">.</button>
+    <button class="btn eq" onclick="eq()">=</button>
+  </div>
+</div>
+<script>
+  let cur = '0', prev = null, pendingOp = null, fresh = false;
+  const vEl = document.getElementById('val'), eEl = document.getElementById('expr');
+
+  function update() { vEl.textContent = cur; }
+  function num(d) { if (fresh) { cur = d; fresh = false; } else cur = cur === '0' ? d : cur + d; update(); }
+  function dot() { if (fresh) { cur = '0.'; fresh = false; } else if (!cur.includes('.')) cur += '.'; update(); }
+  function ac() { cur = '0'; prev = null; pendingOp = null; fresh = false; eEl.textContent = ''; update(); }
+  function sign() { cur = String(-parseFloat(cur)); update(); }
+  function pct() { cur = String(parseFloat(cur) / 100); update(); }
+
+  function compute() {
+    const a = parseFloat(prev), b = parseFloat(cur);
+    if (pendingOp === '÷') return b === 0 ? 'Error' : String(a / b);
+    if (pendingOp === '×') return String(a * b);
+    if (pendingOp === '−') return String(a - b);
+    if (pendingOp === '+') return String(a + b);
+    return cur;
+  }
+
+  function fmt(s) { const n = parseFloat(s); return isNaN(n) ? s : parseFloat(n.toFixed(10)).toString(); }
+
+  function op(o) {
+    if (pendingOp && !fresh) { cur = fmt(compute()); eEl.textContent = cur + ' ' + o; }
+    else eEl.textContent = cur + ' ' + o;
+    prev = cur; pendingOp = o; fresh = true; update();
+  }
+
+  function eq() {
+    if (!pendingOp) return;
+    eEl.textContent = prev + ' ' + pendingOp + ' ' + cur + ' =';
+    cur = fmt(compute()); prev = null; pendingOp = null; fresh = true; update();
+  }
+</script>
+</body>
+</html>
